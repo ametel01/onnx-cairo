@@ -1,5 +1,4 @@
 use onnx_cairo::numbers::signed_integer::integer_trait::IntegerTrait;
-use onnx_cairo::utils::check_gas;
 
 // ====================== INT 128 ======================
 
@@ -317,7 +316,6 @@ fn i128_rem(a: i128, b: i128) -> i128 {
 // # Returns
 // * `(i128, i128)` - A tuple containing the quotient and the remainder of dividing `a` by `b`.
 fn i128_div_rem(a: i128, b: i128) -> (i128, i128) {
-    check_gas();
     let quotient = i128_div(a, b);
     let remainder = i128_rem(a, b);
 

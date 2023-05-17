@@ -1,5 +1,4 @@
 use onnx_cairo::numbers::signed_integer::integer_trait::IntegerTrait;
-use onnx_cairo::utils::check_gas;
 
 // ====================== INT 32 ======================
 
@@ -317,7 +316,6 @@ fn i32_rem(a: i32, b: i32) -> i32 {
 // # Returns
 // * `(i32, i32)` - A tuple containing the quotient and the remainder of dividing `a` by `b`.
 fn i32_div_rem(a: i32, b: i32) -> (i32, i32) {
-    check_gas();
     let quotient = i32_div(a, b);
     let remainder = i32_rem(a, b);
 

@@ -10,10 +10,13 @@
 
 use traits::Into;
 
-use onnx_cairo::numbers::fixed_point::types::{
-    HALF_u128, MAX_u128, ONE_u128, ONE_u64, Fixed, FixedType,
-};
-use onnx_cairo::utils::check_gas;
+use onnx_cairo::numbers::fixed_point::types::HALF_u128;
+use onnx_cairo::numbers::fixed_point::types::MAX_u128;
+use onnx_cairo::numbers::fixed_point::types::ONE_u128;
+use onnx_cairo::numbers::fixed_point::types::ONE_u64;
+use onnx_cairo::numbers::fixed_point::types::Fixed;
+use onnx_cairo::numbers::fixed_point::types::FixedType;
+
 
 //! PUBLIC
 
@@ -41,8 +44,7 @@ fn abs(a: FixedType) -> FixedType {
 ///
 /// * The sum of the input fixed point numbers.
 fn add(a: FixedType, b: FixedType) -> FixedType {
-    check_gas();
-    return Fixed::from_felt(a.into() + b.into());
+    return Fixed::from_felt(a.Into::into() + b.Into::into());
 }
 
 /// Returns the smallest integer greater than or equal to the input fixed point number.
@@ -62,7 +64,7 @@ fn ceil(a: FixedType) -> FixedType {
     } else if (a.sign == false) {
         return Fixed::new_unscaled(div_u128 + 1_u128, false);
     } else {
-        return Fixed::from_unscaled_felt(div_u128.into() * -1);
+        return Fixed::from_unscaled_felt(div_u128.Into::into() * -1);
     }
 }
 
@@ -77,7 +79,6 @@ fn ceil(a: FixedType) -> FixedType {
 ///
 /// * The result of the division of the input fixed point numbers.
 fn div(a: FixedType, b: FixedType) -> FixedType {
-    check_gas();
     let res_sign = a.sign ^ b.sign;
 
     // Invert b to preserve precision as much as possible
@@ -144,7 +145,7 @@ fn exp2(a: FixedType) -> FixedType {
     let t1 = Fixed::new(46516320_u128, false);
 
     let frac_fixed = Fixed::new(frac_part, false);
-    let r8 = t8 * frac_fixed;
+    let r8 = mul(t8, frac_fixed);
     let r7 = (r8 + t7) * frac_fixed;
     let r6 = (r7 + t6) * frac_fixed;
     let r5 = (r6 + t5) * frac_fixed;
@@ -179,7 +180,7 @@ fn floor(a: FixedType) -> FixedType {
     } else if (a.sign == false) {
         return Fixed::new_unscaled(div_u128, false);
     } else {
-        return Fixed::from_unscaled_felt(-1 * div_u128.into() - 1);
+        return Fixed::from_unscaled_felt(-1 * div_u128.Into::into() - 1);
     }
 }
 
@@ -260,15 +261,13 @@ fn ln(a: FixedType) -> FixedType {
 ///
 /// * A FixedType value representing the binary logarithm of the input number.
 fn log2(a: FixedType) -> FixedType {
-    check_gas();
-
     assert(a.sign == false, 'must be positive');
 
     if (a.mag == ONE_u128) {
         return Fixed::new(0_u128, false);
     } else if (a.mag < ONE_u128) {
         // Compute true inverse binary log if 0 < x < 1
-        let div = Fixed::new_unscaled(1_u128, false) / a;
+        let div = div(Fixed::new_unscaled(1_u128, false), a);
         return -log2(div);
     }
 
@@ -339,8 +338,6 @@ fn lt(a: FixedType, b: FixedType) -> bool {
 ///
 /// * A FixedType value representing the product of the two input numbers.
 fn mul(a: FixedType, b: FixedType) -> FixedType {
-    check_gas();
-
     let res_sign = a.sign ^ b.sign;
 
     // Use u128 to multiply and shift back down
@@ -402,7 +399,7 @@ fn pow(a: FixedType, b: FixedType) -> FixedType {
     }
 
     // x^y = exp(y*ln(x)) for x > 0 will error for x < 0
-    return exp(b * ln(a));
+    return exp(mul(b, ln(a)));
 }
 
 /// Rounds a fixed point number to the nearest whole number.
@@ -437,8 +434,8 @@ fn sqrt(a: FixedType) -> FixedType {
     assert(a.sign == false, 'must be positive');
     let root = integer::u128_sqrt(a.mag);
     let scale_root = integer::u128_sqrt(ONE_u128);
-    let res_u64 = root * ONE_u64 / scale_root;
-    return Fixed::new(res_u64.into(), false);
+    let res_u64 = root * 1 / scale_root;
+    return Fixed::new(res_u64.Into::into(), false);
 }
 
 /// Subtracts one fixed point number from another.
@@ -452,8 +449,7 @@ fn sqrt(a: FixedType) -> FixedType {
 ///
 /// * A fixed point number representing the result of the subtraction.
 fn sub(a: FixedType, b: FixedType) -> FixedType {
-    check_gas();
-    return Fixed::from_felt(a.into() - b.into());
+    return Fixed::from_felt(a.Into::into() - b.Into::into());
 }
 
 /// Returns maximum value between two Fixed Points.
@@ -504,8 +500,6 @@ fn min(a: FixedType, b: FixedType) -> FixedType {
 ///
 /// * A u128 value representing the most significant bit.
 fn _msb(a: u128) -> u128 {
-    check_gas();
-
     if (a <= ONE_u128) {
         return 0_u128;
     }
@@ -526,8 +520,6 @@ fn _msb(a: u128) -> u128 {
 ///
 /// * A fixed point number representing the result of x^y.
 fn _pow_int(a: FixedType, b: u128, sign: bool) -> FixedType {
-    check_gas();
-
     if (sign == true) {
         return Fixed::new(ONE_u128, false) / _pow_int(a, b, false);
     }
